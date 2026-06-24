@@ -14,22 +14,23 @@ body, html {
     margin: 0;
     padding: 0;
     width: 100%;
-    height: 100dvh; /* Use dynamic height here for the whole page */
+    height: 100dvh;
     overflow: hidden;
-    position: relative;
+    background-color: #2b2620; 
 }
 #controls {
-    flex: 0 0 auto; /* Keeps the controls at their natural size */
-    z-index: 100;   /* Keeps them on top of the canvas */
-    background: #2b2620;
+    width: 100%;
+    background-color: #2b2620; /* Your Dark/Black color */
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 1000;
 }
-
 #matrix-canvas {
-    flex: 1; /* This tells the canvas to grab all remaining height */
+    flex: 1; 
     display: block;
     width: 100%;
+    background-color: #b89a75; 
 }
-
 .screensaver-mode #matrix-canvas { 
     flex: 0 0 100vh; 
 }
