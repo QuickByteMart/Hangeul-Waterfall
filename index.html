@@ -10,109 +10,78 @@
     <link rel="manifest" href="manifest.json">
 
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100dvh;
-            overflow: hidden;
-            background-color: #2b2620;
-            font-family: 'Georgia', serif;
+        /* Define theme variables. Defaults to Tan theme */
+        :root {
+            --bg-color: #b89a75;
+            --text-color: #2b2620;
         }
 
-        /* FIXED: Added the flex container layout to hold everything perfectly on screen */
-        #app-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: 100dvh;
+        body { 
+            margin: 0; background: var(--bg-color); height: 100vh; overflow: hidden; 
+            font-family: 'Courier New', monospace; touch-action: none; 
+            overscroll-behavior: none; 
+            transition: background 0.3s ease;
+        }
+        
+        #app-container { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+        
+        #matrix-canvas { 
+            display: block; 
+            background: var(--bg-color); 
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.15); 
+            width: 100vw; 
         }
 
-        #matrix-canvas {
-            flex: 1; /* Automatically takes up all leftover top space */
-            display: block;
-            width: 100%;
-            background-color: #b89a75; 
+        .screensaver-mode #matrix-canvas { 
+            flex: 0 0 100vh; 
         }
-
+        
         #menu-ui { 
-            flex: 0 0 auto; /* Keeps its natural height based on buttons/ad, doesn't get squished */
-            background: #3d352a; 
-            display: flex; 
-            flex-direction: column; 
-            padding: 20px; 
-            padding-bottom: env(safe-area-inset-bottom, 20px); /* iPhone notch/home bar protection */
-            border-top: 2px solid #8c7b66; 
-            color: #d2b48c; 
-            position: relative;
-            z-index: 10;
+            flex: 1; background: var(--bg-color); display: flex; flex-direction: column; 
+            padding: 20px; padding-bottom: 90px; gap: 20px; 
+            border-top: 2px solid var(--text-color); box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+            color: var(--text-color); position: relative;
+            transition: all 0.3s ease;
         }
 
         #ad-container { 
-            position: relative; 
-            margin-top: 20px;   
-            width: 120px; 
-            height: 60px; 
-            border: 1px solid #8c7b66; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 60px; border: 1px solid var(--text-color); 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;
             overflow: hidden;
-            background: #2b2620;
-            align-self: center; 
         }
 
-        .controls-wrapper { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 20px; 
-        }
-        
+        .controls-wrapper { display: flex; flex-direction: column; gap: 20px; margin-top: auto; margin-bottom: 30px; }
         .row-top { display: flex; justify-content: space-between; align-items: center; }
+        
         .color-selector { display: flex; gap: 10px; }
-
         .color-btn { 
-            padding: 8px 12px; border: 1px solid #b89a75; cursor: pointer; 
-            background: transparent; color: #b89a75; font-weight: bold; 
-            transition: 0.3s; 
+            padding: 8px 12px; border: 1px solid var(--text-color); cursor: pointer; 
+            background: transparent; color: var(--text-color); font-weight: bold; 
+            transition: 0.3s; opacity: 0.4; 
         }
+        .color-btn.active { opacity: 1; box-shadow: 0 0 15px var(--text-color); background: var(--text-color); color: var(--bg-color); }
 
-        /* Filled look for active buttons */
-        .color-btn.active { 
-            background: #b89a75;
-            color: #2b2620; 
+        #speed-slider { 
+            width: 100px; accent-color: var(--text-color); cursor: pointer; 
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.2));
         }
 
         #engage-btn { 
             align-self: center;
-            background: transparent; 
-            color: #d2b48c; 
-            padding: 8px 16px; 
-            border: 1px solid #d2b48c; 
-            font-weight: bold; 
-            cursor: pointer; 
-            text-transform: uppercase;
-            font-size: 12px; 
+            background: transparent; color: var(--text-color); padding: 10px 30px; 
+            border: 1px solid var(--text-color); font-weight: bold; cursor: pointer; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); text-transform: uppercase;
         }
-        #engage-btn:hover { background: #d2b48c; color: #2b2620; }
-        
-        /* Screensaver Overrides */
-        .screensaver-mode #menu-ui { display: none !important; }
-        .screensaver-mode #matrix-canvas { 
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100dvh;
-            z-index: 500; 
-        }
+        #engage-btn:hover { background: var(--text-color); color: var(--bg-color); }
+
+        .screensaver-mode #menu-ui { display: none; }
+        .screensaver-mode #matrix-canvas { flex: 0 0 100vh; }
 
         #screensaver-close {
-            display: none; position: fixed; bottom: 20px; right: 20px;
-            color: rgba(255,255,255,0.8); cursor: pointer; z-index: 9999;
+            display: none; position: fixed; bottom: 10px; right: 15px;
+            color: #333; cursor: pointer; z-index: 9999;
             font-size: 20px; font-weight: bold;
-            background: rgba(0,0,0,0.6); width: 40px; height: 40px;
-            border-radius: 50%; text-align: center; line-height: 40px;
         }
         .screensaver-mode #screensaver-close { display: block; }
     </style>
@@ -125,8 +94,8 @@
         <div class="controls-wrapper">
             <div class="row-top">
                 <div class="color-selector">
-                    <div class="color-btn active" data-color="#b89a75">Sand</div>
-                    <div class="color-btn" data-color="#2b2620">Black</div>
+                    <div class="color-btn active" data-bg="#b89a75">TAN</div>
+                    <div class="color-btn" data-bg="#2b2620">DARK</div>
                 </div>
                 <input type="range" id="speed-slider" min="20" max="300" step="10" value="220">
             </div>
@@ -151,29 +120,30 @@
     const engageBtn = document.getElementById('engage-btn');
     const speedSlider = document.getElementById('speed-slider');
     
-    let activeColors = {'#b89a75': true, '#2b2620': false};
+    // Dynamic tracking for waterfall background alpha trail and character colors
+    let currentBg = '#b89a75';
+    let trailColor = 'rgba(184, 154, 117, 0.08)'; // #b89a75 in RGBA
+    let matrixTextColor = '#2b2620';
+    
     let speedDelay = 320 - parseInt(speedSlider.value);
     
     speedSlider.addEventListener('input', (e) => {
-        speedDelay = 320 - parseInt(e.target.value); 
+        const val = parseInt(e.target.value);
+        speedDelay = 320 - val; 
     });
-
+    
     let wakeLock = null;
+
     async function requestWakeLock() {
-        if ('wakeLock' in navigator) {
-            try {
-                wakeLock = await navigator.wakeLock.request('screen');
-            } catch (err) {
-                console.error(`${err.name}, ${err.message}`);
-            }
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+        } catch (err) {
+            console.error(`${err.name}, ${err.message}`);
         }
     }
 
     document.getElementById('screensaver-close').addEventListener('click', () => {
-        if (document.fullscreenElement || document.webkitFullscreenElement) {
-            if (document.exitFullscreen) document.exitFullscreen();
-            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        }
+        if (document.fullscreenElement) document.exitFullscreen();
         body.classList.remove('screensaver-mode');
         init();
     });
@@ -182,71 +152,83 @@
         body.classList.add('screensaver-mode');
         requestWakeLock();
         init(); 
-        
-        const target = document.documentElement; // Request fullscreen on page, not just canvas
-        if (target.requestFullscreen) {
-            target.requestFullscreen();
-        } else if (target.webkitRequestFullscreen) {
-            target.webkitRequestFullscreen(); // iOS Safari support
+        if (canvas.requestFullscreen) {
+            canvas.requestFullscreen();
         }
     });
 
-    function handleFullscreenChange() {
-        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) {
             body.classList.remove('screensaver-mode');
             if (wakeLock !== null) {
-                wakeLock.release().then(() => { wakeLock = null; });
+                wakeLock.release().then(() => { 
+                    wakeLock = null; 
+                    console.log('Wake Lock released');
+                });
             }
-            init(); // FIXED: Changed broken 'resize()' call to 'init()'
-        } else {
-            setTimeout(init, 150); // Let mobile browser bars collapse before resizing
+            resize();
         }
-    }
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    });
 
+    // Theme Selector Button Logic
     document.querySelectorAll('.color-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            Object.keys(activeColors).forEach(key => activeColors[key] = false);
-            activeColors[btn.dataset.color] = true;
+            
+            currentBg = btn.dataset.bg;
+            
+            if (currentBg === '#2b2620') {
+                // Dark theme rules
+                document.documentElement.style.setProperty('--bg-color', '#2b2620');
+                document.documentElement.style.setProperty('--text-color', '#39ff14');
+                trailColor = 'rgba(43, 38, 32, 0.08)'; // #2b2620 in RGBA
+                matrixTextColor = '#39ff14';
+            } else {
+                // Tan theme rules
+                document.documentElement.style.setProperty('--bg-color', '#b89a75');
+                document.documentElement.style.setProperty('--text-color', '#2b2620');
+                trailColor = 'rgba(184, 154, 117, 0.08)'; // #b89a75 in RGBA
+                matrixTextColor = '#2b2620';
+            }
+            
+            // Instantly flash canvas background during transition to prevent messy visual blending
+            ctx.fillStyle = currentBg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         });
     });
 
-    const cyphers = '가나다라마바사아자차카타파하거너더러머버서어저처커터퍼허고노도로모보소오조초코토포호구누두루무부수우주추쿠투푸후그느드르므브스으즈츠크트프흐ΩΨΣΔΦ∆□';
+    const cyphers = '0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/가나다라마바사아자차카타파하거너더러머버서어저처커터퍼허고노도로모보소오조초코토포호구누두루무부수우주추쿠투푸후그느드르므브스으즈츠크트프흐ΩΨΣΔΦ∆□';
     const charArray = cyphers.split('');
-    const fontSize = 18;
+    const fontSize = 16;
     let columns, drops;
 
     function init() {
-        // FIXED: Dynamically matches canvas resolution to its layout size perfectly
-        if (body.classList.contains('screensaver-mode')) {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        } else {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight - document.getElementById('menu-ui').offsetHeight;
-        }
-        
-        ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        canvas.width = window.innerWidth;
+        canvas.height = body.classList.contains('screensaver-mode') ? window.innerHeight : window.innerHeight * 0.6;
         columns = Math.floor(canvas.width / fontSize);
-        drops = Array(columns).fill(1);
+        drops = Array(columns).fill(1); 
+        
+        // Ensure background is painted correctly on resize initialization
+        ctx.fillStyle = currentBg;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
     function draw() {
-        const activeBtn = document.querySelector('.color-btn.active');
-        const bgColor = activeBtn ? activeBtn.dataset.color : '#b89a75';
-
-        canvas.style.backgroundColor = bgColor;
-        ctx.fillStyle = bgColor + '26'; 
+        ctx.fillStyle = trailColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        ctx.fillStyle = (bgColor === '#2b2620') ? '#39ff14' : '#2b2620';
-        ctx.font = `bold ${fontSize}px 'Georgia', serif`;
+        ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
 
         for (let i = 0; i < drops.length; i++) {
             const text = charArray[Math.floor(Math.random() * charArray.length)];
+
+            ctx.fillStyle = matrixTextColor;
+            
+            // Add visual highlights depending on active theme
+            if (Math.random() > 0.98) {
+                ctx.fillStyle = (matrixTextColor === '#39ff14') ? '#fff' : '#000'; 
+            }
+
             ctx.fillText(text, i * fontSize, drops[i] * fontSize);
             
             if (drops[i] * fontSize > canvas.height && Math.random() > 0.95) {
