@@ -16,13 +16,12 @@ body, html {
     width: 100%;
     height: 100dvh;
     overflow: hidden;
-    background-color: #2b2620; 
+    background-color: #2b2620;
 }
 #controls {
-    width: 100%;
-    background-color: #2b2620; /* Your Dark/Black color */
-    padding: 20px;
-    box-sizing: border-box;
+    position: fixed;
+    top: 10px;
+    left: 10px;
     z-index: 1000;
 }
 #matrix-canvas {
@@ -32,9 +31,11 @@ body, html {
     background-color: #b89a75; 
 }
 .screensaver-mode #matrix-canvas { 
-    flex: 0 0 100vh; 
-}
-        
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 500; /* Behind the X button, but over everything else */
+}        
 #menu-ui { 
             flex: 1; 
             background: #3d352a; /* Lighter wood tone */
