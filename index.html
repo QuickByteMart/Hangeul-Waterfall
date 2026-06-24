@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.json">
 
     <style>
-        /* Define theme variables. Defaults to Tan theme */
+        /* Define theme variables. Defaults to Day theme */
         :root {
             --bg-color: #b89a75;
             --text-color: #2b2620;
@@ -62,9 +62,35 @@
         }
         .color-btn.active { opacity: 1; box-shadow: 0 0 15px var(--text-color); background: var(--text-color); color: var(--bg-color); }
 
+        /* New Slider Layout Styling */
+        .slider-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 110px;
+        }
+
+        .slider-title {
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+        }
+
         #speed-slider { 
             width: 100px; accent-color: var(--text-color); cursor: pointer; 
             filter: drop-shadow(0 0 2px rgba(0,0,0,0.2));
+            margin: 0;
+        }
+
+        .slider-percentage-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 100px;
+            font-size: 9px;
+            font-weight: bold;
+            margin-top: 3px;
         }
 
         #engage-btn { 
@@ -94,17 +120,25 @@
         <div class="controls-wrapper">
             <div class="row-top">
                 <div class="color-selector">
-                    <div class="color-btn active" data-bg="#b89a75">TAN</div>
-                    <div class="color-btn" data-bg="#2b2620">DARK</div>
+                    <div class="color-btn active" data-bg="#b89a75">Day</div>
+                    <div class="color-btn" data-bg="#2b2620">Night</div>
                 </div>
-                <input type="range" id="speed-slider" min="20" max="300" step="10" value="220">
+                
+                <div class="slider-wrapper">
+                    <span class="slider-title">Speed</span>
+                    <input type="range" id="speed-slider" min="20" max="300" step="10" value="220">
+                    <div class="slider-percentage-labels">
+                        <span>0%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
             </div>
             <div id="engage-btn">Full Screen</div>
         </div>
 
         <div id="ad-container">
             <div id="frame" style="width: 120px;margin: auto;z-index: 99998;height: auto">
-                <iframe data-aa='2445512' src='//ad.a-ads.com/2445512/?size=120x60'
+                <iframe data-aa='2445361' src='//ad.a-ads.com/2445361/?size=120x60'
                         style='border:0; padding:0; width:120px; height:60px; overflow:hidden;display: block;margin: auto'></iframe>
             </div>
         </div>
@@ -120,9 +154,8 @@
     const engageBtn = document.getElementById('engage-btn');
     const speedSlider = document.getElementById('speed-slider');
     
-    // Dynamic tracking for waterfall background alpha trail and character colors
     let currentBg = '#b89a75';
-    let trailColor = 'rgba(184, 154, 117, 0.08)'; // #b89a75 in RGBA
+    let trailColor = 'rgba(184, 154, 117, 0.08)'; 
     let matrixTextColor = '#2b2620';
     
     let speedDelay = 320 - parseInt(speedSlider.value);
@@ -170,7 +203,6 @@
         }
     });
 
-    // Theme Selector Button Logic
     document.querySelectorAll('.color-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
@@ -179,20 +211,17 @@
             currentBg = btn.dataset.bg;
             
             if (currentBg === '#2b2620') {
-                // Dark theme rules
                 document.documentElement.style.setProperty('--bg-color', '#2b2620');
                 document.documentElement.style.setProperty('--text-color', '#39ff14');
-                trailColor = 'rgba(43, 38, 32, 0.08)'; // #2b2620 in RGBA
+                trailColor = 'rgba(43, 38, 32, 0.08)'; 
                 matrixTextColor = '#39ff14';
             } else {
-                // Tan theme rules
                 document.documentElement.style.setProperty('--bg-color', '#b89a75');
                 document.documentElement.style.setProperty('--text-color', '#2b2620');
-                trailColor = 'rgba(184, 154, 117, 0.08)'; // #b89a75 in RGBA
+                trailColor = 'rgba(184, 154, 117, 0.08)'; 
                 matrixTextColor = '#2b2620';
             }
             
-            // Instantly flash canvas background during transition to prevent messy visual blending
             ctx.fillStyle = currentBg;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         });
@@ -209,7 +238,6 @@
         columns = Math.floor(canvas.width / fontSize);
         drops = Array(columns).fill(1); 
         
-        // Ensure background is painted correctly on resize initialization
         ctx.fillStyle = currentBg;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
@@ -224,7 +252,6 @@
 
             ctx.fillStyle = matrixTextColor;
             
-            // Add visual highlights depending on active theme
             if (Math.random() > 0.98) {
                 ctx.fillStyle = (matrixTextColor === '#39ff14') ? '#fff' : '#000'; 
             }
