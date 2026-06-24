@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Hangeul Waterfall</title>
+
+    <link rel="manifest" href="manifest.json">
+
+    <style>
+body { 
+            background: radial-gradient(circle, rgba(60,50,40,1) 0%, rgba(43,38,32,1) 100%), 
+                        url("data:image/svg+xml,...[the same noise code as above]...");
+        }
+            margin: 0; 
+            /* Layered background: color + grain texture */
+            background-color: #2b2620;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E");
+            height: 100vh; 
+            overflow: hidden; 
+            font-family: 'Georgia', serif; 
+            touch-action: none; 
+            overscroll-behavior: none; 
+        }
+
+#matrix-canvas { 
+    display: block; 
+    background: #b89a75; 
+    width: 100vw; 
+}
+
+.screensaver-mode #matrix-canvas { 
+    flex: 0 0 100vh; 
+}
+        
+#menu-ui { 
+            flex: 1; 
+            background: #3d352a; /* Lighter wood tone */
+            display: flex; flex-direction: column; 
+            padding: 20px; 
+            border-top: 2px solid #8c7b66; /* Sand-colored border */
+            color: #d2b48c; /* Tan/Sand text color */
+            position: relative;
+        }
+
+       #ad-container { 
+            position: relative; /* Changed from absolute to relative */
+            margin-top: 40px;   /* Creates the physical gap between controls and ad */
+            width: 120px; 
+            height: 60px; 
+            border: 1px solid #8c7b66; 
+            box-shadow: none; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            overflow: hidden;
+            background: #2b2620;
+            align-self: center; /* Centers the ad box horizontally */
+        }
+
+        .controls-wrapper { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            margin-bottom: auto; /* Pushes everything above this to the top */
+        }
+        .row-top { display: flex; justify-content: space-between; align-items: center; }
+        
+        .color-selector { display: flex; gap: 10px; }
+/* Base button style (Inactive) */
+.color-btn { 
+    padding: 8px 12px; border: 1px solid #b89a75; cursor: pointer; 
+    background: transparent; color: #b89a75; font-weight: bold; 
+    transition: 0.3s; 
+}
+
+/* Active state (Filled) - we will apply specific colors via JS or CSS */
+.color-btn.active { 
+    color: #2b2620; /* Dark text for contrast when filled */
+}
+#engage-btn { 
+            align-self: center;
+            background: transparent; 
+            color: #d2b48c; 
+            padding: 8px 16px; /* Reduced padding */
+            border: 1px solid #d2b48c; 
+            font-weight: bold; 
+            cursor: pointer; 
+            box-shadow: none; /* Removed neon shadow */
+            text-transform: uppercase;
+            font-size: 12px; /* Smaller font */
+        }
+        #engage-btn:hover { background: #d2b48c; color: #2b2620; }
+        .screensaver-mode #menu-ui { display: none; }
+        .screensaver-mode #matrix-canvas { flex: 0 0 100vh; }
+
+        #screensaver-close {
+            display: none; position: fixed; bottom: 10px; right: 15px;
+            color: #333; cursor: pointer; z-index: 9999;
+            font-size: 20px; font-weight: bold;
+        }
+        .screensaver-mode #screensaver-close { display: block; }
+    </style>
+</head>
+<body id="app-body">
+
+<div id="app-container">
+    <canvas id="matrix-canvas"></canvas>
+    <div id="menu-ui">
+        <div class="controls-wrapper">
+            <div class="row-top">
+                <div class="color-selector">
+    <div class="color-btn" data-color="#b89a75">Sand</div>
+    <div class="color-btn" data-color="#2b2620">Black</div>
+                </div>
+                <input type="range" id="speed-slider" min="20" max="300" step="10" value="220">
+            </div>
+            <div id="engage-btn">Full Screen</div>
+        </div>
+
+        <div id="ad-container">
+            <div id="frame" style="width: 120px;margin: auto;z-index: 99998;height: auto">
+                <iframe data-aa='2445361' src='//ad.a-ads.com/2445361/?size=120x60'
+                        style='border:0; padding:0; width:120px; height:60px; overflow:hidden;display: block;margin: auto'></iframe>
+            </div>
+            </div>
+    </div>
+</div>
+
+<div id="screensaver-close">X</div>
+
+<script>
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+    const body = document.getElementById('app-body');
+    const engageBtn = document.getElementById('engage-btn');
+    const speedSlider = document.getElementById('speed-slider');
+    
+let activeColors = {'#b89a75': true, '#2b2620': false};
+    let speedDelay = 320 - parseInt(speedSlider.value);
+    
+    speedSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        speedDelay = 320 - val; 
+    });
+let wakeLock = null;
+
+async function requestWakeLock() {
+    try {
+        wakeLock = await navigator.wakeLock.request('screen');
+    } catch (err) {
+        console.error(`${err.name}, ${err.message}`);
+    }
+}
+
+
+    document.getElementById('screensaver-close').addEventListener('click', () => {
+        if (document.fullscreenElement) document.exitFullscreen();
+        body.classList.remove('screensaver-mode');
+        init();
+    });
+
+engageBtn.addEventListener('click', () => {
+    body.classList.add('screensaver-mode');
+    requestWakeLock();
+    
+    // Call init immediately to set dimensions BEFORE the browser takes over
+    init(); 
+    
+    if (canvas.requestFullscreen) {
+        canvas.requestFullscreen();
+    }
+});
+document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) {
+            body.classList.remove('screensaver-mode');
+            
+            // Release the Wake Lock when exiting fullscreen
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => { 
+                    wakeLock = null; 
+                    console.log('Wake Lock released');
+                });
+            }
+            
+            resize();
+        }
+    });
+
+document.querySelectorAll('.color-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        // 1. Reset all buttons (no background change)
+        document.querySelectorAll('.color-btn').forEach(b => {
+            b.classList.remove('active');
+        });
+
+        // 2. Set only the clicked button to active
+        btn.classList.add('active');
+
+        // 3. Update the background state object
+        // This keeps your draw() function working correctly
+        Object.keys(activeColors).forEach(key => activeColors[key] = false);
+        activeColors[btn.dataset.color] = true;
+    });
+});
+// Replace this line in your <script> section
+const cyphers = '가나다라마바사아자차카타파하거너더러머버서어저처커터퍼허고노도로모보소오조초코토포호구누두루무부수우주추쿠투푸후그느드르므브스으즈츠크트프흐ΩΨΣΔΦ∆□';
+    const charArray = cyphers.split('');
+    const fontSize = 18;
+    let columns, drops;
+
+function init() {
+    canvas.width = window.innerWidth;
+    canvas.height = body.classList.contains('screensaver-mode') ? window.innerHeight : window.innerHeight * 0.6;
+    
+    // Explicitly clear it once to remove any residual black
+    ctx.clearRect(0, 0, canvas.width, canvas.height); 
+    
+    columns = Math.floor(canvas.width / fontSize);
+    drops = Array(columns).fill(1);
+}
+
+function draw() {
+    // 1. Get the current active background color
+    const activeBtn = document.querySelector('.color-btn.active');
+    const bgColor = activeBtn ? activeBtn.dataset.color : '#b89a75';
+
+    // 2. Apply background
+    canvas.style.backgroundColor = bgColor;
+    ctx.fillStyle = bgColor + '26'; 
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // 3. Set text color: 
+    // If black button (#2b2620) is active, use Neon Green
+    // Otherwise, use dark ink (#2b2620)
+    ctx.fillStyle = (bgColor === '#2b2620') ? '#39ff14' : '#2b2620';
+    ctx.font = `bold ${fontSize}px 'Georgia', serif`;
+
+    // 4. Draw characters
+    for (let i = 0; i < drops.length; i++) {
+        const text = charArray[Math.floor(Math.random() * charArray.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.95) {
+            drops[i] = 0;
+        }
+        drops[i]++;
+    }
+}
+    window.addEventListener('resize', init);
+    init();
+
+    let lastRender = 0;
+    function loop(timestamp) {
+        if (timestamp - lastRender > speedDelay) {
+            draw();
+            lastRender = timestamp;
+        }
+        requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+</script>
+</body>
+</html>
