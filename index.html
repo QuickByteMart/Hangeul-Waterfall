@@ -10,26 +10,20 @@
     <link rel="manifest" href="manifest.json">
 
     <style>
-/* 1. Reset the body to be a vertical stack */
 body, html {
     margin: 0;
     padding: 0;
-    height: 100%;
     width: 100%;
-    display: flex;
-    flex-direction: column; /* Stacks items vertically */
+    height: 100dvh; /* Use dynamic height here for the whole page */
     overflow: hidden;
-    background-color: #2b2620;
+    position: relative;
 }
-
-/* 2. Style your control panel container */
 #controls {
     flex: 0 0 auto; /* Keeps the controls at their natural size */
     z-index: 100;   /* Keeps them on top of the canvas */
     background: #2b2620;
 }
 
-/* 3. Let the canvas fill the leftover space */
 #matrix-canvas {
     flex: 1; /* This tells the canvas to grab all remaining height */
     display: block;
