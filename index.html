@@ -10,25 +10,30 @@
     <link rel="manifest" href="manifest.json">
 
     <style>
-body { 
-            background: radial-gradient(circle, rgba(60,50,40,1) 0%, rgba(43,38,32,1) 100%), 
-                        url("data:image/svg+xml,...[the same noise code as above]...");
-        }
-            margin: 0; 
-            /* Layered background: color + grain texture */
-            background-color: #2b2620;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E");
-            height: 100vh; 
-            overflow: hidden; 
-            font-family: 'Georgia', serif; 
-            touch-action: none; 
-            overscroll-behavior: none; 
-        }
+/* 1. Reset the body to be a vertical stack */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column; /* Stacks items vertically */
+    overflow: hidden;
+    background-color: #2b2620;
+}
 
-#matrix-canvas { 
-    display: block; 
-    background: #b89a75; 
-    width: 100vw; 
+/* 2. Style your control panel container */
+#controls {
+    flex: 0 0 auto; /* Keeps the controls at their natural size */
+    z-index: 100;   /* Keeps them on top of the canvas */
+    background: #2b2620;
+}
+
+/* 3. Let the canvas fill the leftover space */
+#matrix-canvas {
+    flex: 1; /* This tells the canvas to grab all remaining height */
+    display: block;
+    width: 100%;
 }
 
 .screensaver-mode #matrix-canvas { 
@@ -107,6 +112,11 @@ body {
 <body id="app-body">
 
 <div id="app-container">
+    <div id="controls">
+        <button class="color-btn" data-color="#b89a75">Sand</button>
+        <button class="color-btn" data-color="#2b2620">Black</button>
+    </div>
+
     <canvas id="matrix-canvas"></canvas>
     <div id="menu-ui">
         <div class="controls-wrapper">
